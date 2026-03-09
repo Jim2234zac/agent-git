@@ -121,6 +121,59 @@ app.delete('/api/orders/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// API: Add new menu item
+app.post('/api/menu', (req, res) => {
+  const { name, description, price, category, image } = req.body;
+  const menu = readJSON(menuFile);
+  
+  if (!name || !price || !category) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+  
+  const newItem = {
+    id: menu.length > 0 ? Math.max(...menu.map(m => m.id)) + 1 : 1,
+    name,
+    description: description || '',
+    price: parseFloat(price),
+    category,
+    image: image || '🍽️'
+  };
+  
+  menu.push(newItem);
+  writeJSON(menuFile, menu);
+  res.json({ success: true, item: newItem });
+});
+
+// API: Update menu item
+app.put('/api/menu/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, description, price, category, image } = req.body;
+  const menu = readJSON(menuFile);
+  const item = menu.find(m => m.id == id);
+  
+  if (!item) {
+    return res.status(404).json({ success: false, error: 'Menu item not found' });
+  }
+  
+  if (name) item.name = name;
+  if (description) item.description = description;
+  if (price) item.price = parseFloat(price);
+  if (category) item.category = category;
+  if (image) item.image = image;
+  
+  writeJSON(menuFile, menu);
+  res.json({ success: true, item });
+});
+
+// API: Delete menu item
+app.delete('/api/menu/:id', (req, res) => {
+  const { id } = req.params;
+  let menu = readJSON(menuFile);
+  menu = menu.filter(m => m.id != id);
+  writeJSON(menuFile, menu);
+  res.json({ success: true });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

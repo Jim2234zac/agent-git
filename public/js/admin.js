@@ -1,3 +1,150 @@
+// Menu Management Functions
+async function loadMenuItems() {
+  try {
+    const response = await fetch('/api/menu');
+    const menu = await response.json();
+    displayMenuItems(menu);
+  } catch (error) {
+    console.error('Error loading menu:', error);
+  }
+}
+
+function displayMenuItems(menu) {
+  const container = document.getElementById('menuListContainer');
+  
+  if (menu.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>📭 ไม่มีรายการเมนู</p></div>';
+    return;
+  }
+
+  container.innerHTML = menu.map(item => `
+    <div class="menu-management-card">
+      <div class="menu-card-header">
+        <div class="menu-emoji">${item.image}</div>
+        <div class="menu-info">
+          <div class="menu-name">${item.name}</div>
+          <div class="menu-category">${getCategoryName(item.category)}</div>
+          <div class="menu-price">฿${item.price}</div>
+        </div>
+      </div>
+      ${item.description ? `<div class="menu-description">${item.description}</div>` : ''}
+      <div class="menu-actions">
+        <button class="menu-edit-btn" onclick="editMenuForm(${item.id}, '${item.name}', ${item.price}, '${item.category}', '${item.image}', '${item.description || ''}')">✏️ แก้ไข</button>
+        <button class="menu-delete-btn" onclick="deleteMenuItem(${item.id})">🗑️ ลบ</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getCategoryName(category) {
+  const categories = {
+    appetizer: '🥘 อาหารจานเล็ก',
+    noodles: '🍝 เส้นก๊วยเตี๋ยว',
+    rice: '🍚 ข้าว',
+    curry: '🍛 แกง',
+    soup: '🍜 น้ำซุป',
+    beverage: '🥤 เครื่องดื่ม'
+  };
+  return categories[category] || category;
+}
+
+async function addMenuItem() {
+  const name = document.getElementById('menuName').value.trim();
+  const price = parseFloat(document.getElementById('menuPrice').value);
+  const category = document.getElementById('menuCategory').value;
+  const image = document.getElementById('menuImage').value.trim() || '🍽️';
+  const description = document.getElementById('menuDescription').value.trim();
+
+  if (!name || !price || !category) {
+    alert('กรุณากรอกข้อมูลที่จำเป็น (ชื่อ, ราคา, หมวดหมู่)');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/menu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, price, category, image, description })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      alert('✓ เพิ่มอาหารสำเร็จ!');
+      document.getElementById('menuName').value = '';
+      document.getElementById('menuPrice').value = '';
+      document.getElementById('menuCategory').value = '';
+      document.getElementById('menuImage').value = '';
+      document.getElementById('menuDescription').value = '';
+      loadMenuItems();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('ไม่สามารถเพิ่มอาหารได้');
+  }
+}
+
+async function editMenuForm(id, name, price, category, image, description) {
+  const newName = prompt('ชื่ออาหาร:', name);
+  if (newName === null) return;
+
+  const newPrice = prompt('ราคา:', price);
+  if (newPrice === null) return;
+
+  const newImage = prompt('Emoji/รูป:', image);
+  if (newImage === null) return;
+
+  const newDescription = prompt('รายละเอียด:', description);
+  if (newDescription === null) return;
+
+  try {
+    const response = await fetch(`/api/menu/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: newName,
+        price: parseFloat(newPrice),
+        category,
+        image: newImage || '🍽️',
+        description: newDescription
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      alert('✓ แก้ไขสำเร็จ!');
+      loadMenuItems();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('ไม่สามารถแก้ไขได้');
+  }
+}
+
+async function deleteMenuItem(id) {
+  if (!confirm('ยืนยันการลบรายการนี้?')) return;
+
+  try {
+    const response = await fetch(`/api/menu/${id}`, { method: 'DELETE' });
+    const result = await response.json();
+
+    if (result.success) {
+      alert('✓ ลบสำเร็จ!');
+      loadMenuItems();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('ไม่สามารถลบได้');
+  }
+}
+
 // Load orders
 async function loadOrders() {
   try {
@@ -216,7 +363,10 @@ function printQR() {
 setInterval(loadOrders, 5000);
 
 // Load orders on page load
-document.addEventListener('DOMContentLoaded', loadOrders);
+document.addEventListener('DOMContentLoaded', () => {
+  loadOrders();
+  loadMenuItems();
+});
 
 // Close modal when clicking outside
 window.onclick = function(event) {

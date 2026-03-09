@@ -59,6 +59,51 @@
       </div>
     </div>
 
+    <!-- Menu Management -->
+    <h2 style="margin-top: 40px;">🍴 จัดการเมนูอาหาร</h2>
+    <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 20px 0;">
+      <h3>➕ เพิ่มรายการเมนูใหม่</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">ชื่ออาหาร: *</label>
+          <input type="text" id="menuName" placeholder="เช่น ผัดไทย" class="table-input" style="margin: 0;">
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">ราคา: *</label>
+          <input type="number" id="menuPrice" placeholder="เช่น 80" min="0" class="table-input" style="margin: 0;">
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">หมวดหมู่: *</label>
+          <select id="menuCategory" class="table-input" style="margin: 0;">
+            <option value="">-- เลือกหมวดหมู่ --</option>
+            <option value="appetizer">อาหารจานเล็ก</option>
+            <option value="noodles">เส้นก๊วยเตี๋ยว</option>
+            <option value="rice">ข้าว</option>
+            <option value="curry">แกง</option>
+            <option value="soup">น้ำซุป</option>
+            <option value="beverage">เครื่องดื่ม</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">Emoji/สัญลักษณ์:</label>
+          <input type="text" id="menuImage" placeholder="เช่น 🍕" class="table-input" style="margin: 0;" maxlength="2">
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">รายละเอียด:</label>
+          <textarea id="menuDescription" class="table-input" rows="2" placeholder="รายละเอียดเพิ่มเติม..." style="margin: 0;"></textarea>
+        </div>
+      </div>
+      <button class="checkout-btn" onclick="addMenuItem()" style="width: 100%; margin-top: 15px; background-color: var(--secondary-color);">✓ เพิ่มอาหาร</button>
+    </div>
+
+    <!-- Menu List -->
+    <div style="margin-top: 30px;">
+      <h3>📋 รายการเมนูปัจจุบัน</h3>
+      <div id="menuListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+        <!-- Menu items จะแสดงที่นี่ -->
+      </div>
+    </div>
+
     <!-- Orders Management -->
     <h2 style="margin-top: 40px;">📦 คำสั่งซื้อ</h2>
     <div style="overflow-x: auto;">
