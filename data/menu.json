@@ -6,13 +6,5 @@
     "price": 89,
     "category": "appetizer",
     "image": "/uploads/image-1773087579211-128705921.jpg"
-  },
-  {
-    "id": 9,
-    "name": "น้ำเปล่า",
-    "description": "",
-    "price": 10,
-    "category": "beverage",
-    "image": "/uploads/image-1773088395584-751051554.jpg"
   }
 ]
