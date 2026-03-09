@@ -5,34 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบสั่งอาหาร - เมนู</title>
   <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/translations.js"></script>
 </head>
 <body>
   <header>
-    <h1>🍽️ ระบบสั่งอาหารออนไลน์</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h1>🍽️ <span id="headerTitle">ระบบสั่งอาหารออนไลน์</span></h1>
+      <div class="language-toggle">
+        <button onclick="setLanguage('th')" class="lang-btn active" id="langTh">ไทย</button>
+        <button onclick="setLanguage('en')" class="lang-btn" id="langEn">English</button>
+      </div>
+    </div>
     <p id="tableInfo"></p>
   </header>
 
   <nav>
-    <a href="/menu" class="active">🍴 เมนู</a>
-    <a href="/cart">🛒 ตะกร้า</a>
+    <a href="/menu" class="active"><span id="navMenu">🍴 เมนู</span></a>
+    <a href="/cart"><span id="navCart">🛒 ตะกร้า</span></a>
   </nav>
 
   <div class="container">
     <!-- Table Selection (ถ้าจำเป็น) -->
     <div id="tableSelection" style="display: none; margin: 20px 0; text-align: center;">
-      <input type="number" id="tableNumber" placeholder="กรุณากรอกหมายเลขโต๊ะ" min="1" max="99" class="table-input" style="max-width: 300px;">
-      <button onclick="setTableNumber()" class="checkout-btn" style="max-width: 300px;">ยืนยันโต๊ะ</button>
+      <input type="number" id="tableNumber" placeholder="" min="1" max="99" class="table-input" style="max-width: 300px;">
+      <button onclick="setTableNumber()" class="checkout-btn" style="max-width: 300px;"><span id="confirmTableBtn">ยืนยันโต๊ะ</span></button>
     </div>
 
     <!-- Category Filter -->
-    <div class="category-filter">
-      <button class="category-btn active" onclick="filterMenu('all')">ทั้งหมด</button>
-      <button class="category-btn" onclick="filterMenu('appetizer')">อาหารจานเล็ก</button>
-      <button class="category-btn" onclick="filterMenu('noodles')">เส้นก๊วยเตี๋ยว</button>
-      <button class="category-btn" onclick="filterMenu('rice')">ข้าว</button>
-      <button class="category-btn" onclick="filterMenu('curry')">แกง</button>
-      <button class="category-btn" onclick="filterMenu('soup')">น้ำซุป</button>
-      <button class="category-btn" onclick="filterMenu('beverage')">เครื่องดื่ม</button>
+    <div class="category-filter" id="categoryFilter">
+      <button class="category-btn active" onclick="filterMenu('all')" data-key="all">ทั้งหมด</button>
+      <button class="category-btn" onclick="filterMenu('appetizer')" data-key="appetizer">อาหารจานเล็ก</button>
+      <button class="category-btn" onclick="filterMenu('noodles')" data-key="noodles">เส้นก๊วยเตี๋ยว</button>
+      <button class="category-btn" onclick="filterMenu('rice')" data-key="rice">ข้าว</button>
+      <button class="category-btn" onclick="filterMenu('curry')" data-key="curry">แกง</button>
+      <button class="category-btn" onclick="filterMenu('soup')" data-key="soup">น้ำซุป</button>
+      <button class="category-btn" onclick="filterMenu('beverage')" data-key="beverage">เครื่องดื่ม</button>
     </div>
 
     <!-- Menu Grid -->
@@ -41,7 +48,7 @@
     </div>
 
     <div id="loading" style="text-align: center; padding: 40px;">
-      <p>⏳ กำลังโหลดเมนู...</p>
+      <p id="loadingText">⏳ กำลังโหลดเมนู...</p>
     </div>
   </div>
 

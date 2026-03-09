@@ -12,8 +12,8 @@ function loadCart() {
   if (cart.length === 0) {
     cartItemsList.innerHTML = `
       <div class="empty-state">
-        <p>😢 ตะกร้าว่าง</p>
-        <a href="/menu" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">← กลับไปเลือกอาหาร</a>
+        <p>${t('emptyCart')}</p>
+        <a href="/menu" style="color: var(--primary-color); text-decoration: none; font-weight: 600;"><span>${t('backToMenu')}</span></a>
       </div>
     `;
     document.getElementById('checkoutBtn').disabled = true;
@@ -25,15 +25,15 @@ function loadCart() {
     <div class="cart-item">
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
-        <div class="cart-item-price">฿${item.price}</div>
+        <div class="cart-item-price">${t('price')}${item.price}</div>
       </div>
       <div class="cart-item-quantity">
         <button class="quantity-btn" onclick="updateQuantity(${index}, -1)">−</button>
         <span style="width: 30px; text-align: center; font-weight: 600;">${item.quantity}</span>
         <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button>
       </div>
-      <span style="font-weight: 700; color: var(--primary-color); margin: 0 10px;">฿${item.price * item.quantity}</span>
-      <button class="remove-btn" onclick="removeItem(${index})">ลบ</button>
+      <span style="font-weight: 700; color: var(--primary-color); margin: 0 10px;">${t('price')}${item.price * item.quantity}</span>
+      <button class="remove-btn" onclick="removeItem(${index})">${t('remove')}</button>
     </div>
   `).join('');
 
@@ -57,7 +57,7 @@ function updateQuantity(index, change) {
 }
 
 function removeItem(index) {
-  if (confirm('ยืนยันการลบรายการ?')) {
+  if (confirm(t('removeConfirm') || 'ยืนยันการลบรายการ?')) {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     cart.splice(index, 1);
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -71,11 +71,12 @@ function updateSummary() {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const delivery = subtotal > 0 ? 0 : 0; // Free delivery
   const total = subtotal + delivery;
+  const priceSymbol = t('price');
 
   document.getElementById('totalItems').textContent = totalItems;
-  document.getElementById('subtotal').textContent = `฿${subtotal}`;
-  document.getElementById('delivery').textContent = `฿${delivery}`;
-  document.getElementById('totalPrice').textContent = `฿${total}`;
+  document.getElementById('subtotal').textContent = `${priceSymbol}${subtotal}`;
+  document.getElementById('delivery').textContent = `${priceSymbol}${delivery}`;
+  document.getElementById('totalPrice').textContent = `${priceSymbol}${total}`;
 }
 
 async function checkout() {
@@ -84,12 +85,12 @@ async function checkout() {
   const notes = document.getElementById('notes').value;
 
   if (!tableNumber) {
-    alert('กรุณาสแกน QR Code ของโต๊ะก่อน');
+    alert(t('scanQRFirst'));
     return;
   }
 
   if (cart.length === 0) {
-    alert('ตะกร้าว่าง');
+    alert(t('emptyCartError'));
     return;
   }
 
@@ -120,9 +121,11 @@ async function checkout() {
       document.getElementById('cartItemsList').innerHTML = '';
       document.getElementById('checkoutBtn').style.display = 'none';
       document.getElementById('successAlert').style.display = 'block';
-      document.getElementById('successTable').textContent = tableNumber;
-      document.getElementById('successMessage').textContent = 
-        `เวลาที่สั่ง: ${new Date().toLocaleString('th-TH')}\nราคารวม: ฿${totalPrice}`;
+      const priceSymbol = t('price');
+      const orderTime = new Date().toLocaleString(getCurrentLanguage() === 'th' ? 'th-TH' : 'en-US');
+      document.getElementById('successMessage').textContent = t('successOrder');
+      document.getElementById('successOrderNum').textContent = `${t('orderNumber')}: ${result.orderId}`;
+      document.getElementById('successEstimate').textContent = `${t('yourTable')}: ${tableNumber} | ${orderTime}`;
 
       // Scroll to top
       window.scrollTo(0, 0);
@@ -132,13 +135,57 @@ async function checkout() {
         location.href = '/menu';
       }, 5000);
     } else {
-      alert('เกิดข้อผิดพลาด: ' + result.error);
+      alert(t('orderError') + ': ' + result.error);
     }
   } catch (error) {
     console.error('Error:', error);
-    alert('ไม่สามารถส่งคำสั่งได้');
+    alert(t('orderFailed'));
   }
 }
 
+// Initialize language
+function initLanguage() {
+  const lang = getCurrentLanguage();
+  document.getElementById('headerTitle').textContent = t('title').substring(4); // Remove emoji
+  document.getElementById('navMenu').textContent = t('menu');
+  document.getElementById('navCart').textContent = t('cart');
+  document.getElementById('cartSubtitle').textContent = t('cartSubtitle');
+  document.getElementById('cartItemsTitle').textContent = t('cartItems');
+  document.getElementById('orderSummaryTitle').textContent = t('orderSummary');
+  document.getElementById('totalItemsLabel').textContent = t('totalItems') + ':';
+  document.getElementById('subtotalLabel').textContent = t('subtotal') + ':';
+  document.getElementById('deliveryLabel').textContent = t('delivery') + ':';
+  document.getElementById('totalLabel').textContent = t('total') + ':';
+  document.getElementById('yourTableLabel').textContent = t('yourTable');
+  document.getElementById('notesLabel').textContent = t('notes') + ':';
+  document.getElementById('notes').placeholder = t('notesPlaceholder');
+  document.getElementById('checkoutBtn').textContent = t('confirmOrder');
+  document.getElementById('addMoreLink').textContent = t('addMore');
+  document.getElementById('emptyCartText').textContent = t('emptyCart');
+  document.getElementById('backToMenuText').textContent = t('backToMenu');
+  
+  // Update language buttons
+  const langTh = document.getElementById('langTh');
+  const langEn = document.getElementById('langEn');
+  if (lang === 'th') {
+    langTh.classList.add('active');
+    langEn.classList.remove('active');
+  } else {
+    langTh.classList.remove('active');
+    langEn.classList.add('active');
+  }
+  
+  updateSummaryLabels();
+}
+
+function updateSummaryLabels() {
+  // Update price currency
+  const priceSymbol = t('price');
+  // This will be handled in the display functions
+}
+
 // Load cart on page load
-document.addEventListener('DOMContentLoaded', loadCart);
+document.addEventListener('DOMContentLoaded', () => {
+  initLanguage();
+  loadCart();
+});

@@ -3,27 +3,71 @@ const urlParams = new URLSearchParams(window.location.search);
 const tableNumber = urlParams.get('table');
 let currentCategory = 'all';
 
-// Update table info
-if (tableNumber) {
-  document.getElementById('tableInfo').textContent = `โต๊ะ: ${tableNumber}`;
-  localStorage.setItem('tableNumber', tableNumber);
-} else {
-  const savedTable = localStorage.getItem('tableNumber');
-  if (savedTable) {
-    document.getElementById('tableInfo').textContent = `โต๊ะ: ${savedTable}`;
+// Initialize language
+function initLanguage() {
+  const lang = getCurrentLanguage();
+  document.getElementById('headerTitle').textContent = t('title').substring(4); // Remove emoji
+  document.getElementById('navMenu').textContent = t('menu');
+  document.getElementById('navCart').textContent = t('cart');
+  document.getElementById('confirmTableBtn').textContent = t('confirmTable');
+  document.getElementById('tableNumber').placeholder = t('enterTableNumber');
+  document.getElementById('loadingText').textContent = t('loading');
+  
+  // Update language buttons
+  const langTh = document.getElementById('langTh');
+  const langEn = document.getElementById('langEn');
+  if (lang === 'th') {
+    langTh.classList.add('active');
+    langEn.classList.remove('active');
   } else {
-    document.getElementById('tableSelection').style.display = 'block';
+    langTh.classList.remove('active');
+    langEn.classList.add('active');
+  }
+  
+  // Update category buttons
+  updateCategoryButtons();
+}
+
+function updateCategoryButtons() {
+  const categories = ['all', 'appetizer', 'noodles', 'rice', 'curry', 'soup', 'beverage'];
+  document.querySelectorAll('.category-btn').forEach(btn => {
+    const key = btn.dataset.key;
+    if (categories.includes(key)) {
+      btn.textContent = t(key);
+    }
+  });
+}
+
+// Update table info
+function updateTableInfo() {
+  if (tableNumber) {
+    document.getElementById('tableInfo').textContent = `${t('table')}: ${tableNumber}`;
+    localStorage.setItem('tableNumber', tableNumber);
+  } else {
+    const savedTable = localStorage.getItem('tableNumber');
+    if (savedTable) {
+      document.getElementById('tableInfo').textContent = `${t('table')}: ${savedTable}`;
+    } else {
+      document.getElementById('tableSelection').style.display = 'block';
+    }
   }
 }
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  initLanguage();
+  updateTableInfo();
+  loadMenu();
+});
 
 function setTableNumber() {
   const table = document.getElementById('tableNumber').value;
   if (table && table > 0 && table <= 99) {
     localStorage.setItem('tableNumber', table);
-    document.getElementById('tableInfo').textContent = `โต๊ะ: ${table}`;
+    document.getElementById('tableInfo').textContent = `${t('table')}: ${table}`;
     document.getElementById('tableSelection').style.display = 'none';
   } else {
-    alert('กรุณากรอกหมายเลขโต๊ะที่ถูกต้อง (1-99)');
+    alert(t('invalidTable'));
   }
 }
 
@@ -36,7 +80,7 @@ async function loadMenu() {
     document.getElementById('loading').style.display = 'none';
   } catch (error) {
     console.error('Error loading menu:', error);
-    document.getElementById('loading').innerHTML = '<p>❌ ไม่สามารถโหลดเมนู</p>';
+    document.getElementById('loading').innerHTML = `<p>${t('loadError')}</p>`;
   }
 }
 
@@ -44,7 +88,7 @@ function displayMenu(menu) {
   const menuGrid = document.getElementById('menuGrid');
   
   if (menu.length === 0) {
-    menuGrid.innerHTML = '<div class="empty-state"><p>😢 ไม่มีรายการอาหาร</p></div>';
+    menuGrid.innerHTML = `<div class="empty-state"><p>${t('noItems')}</p></div>`;
     return;
   }
 
@@ -68,9 +112,9 @@ function displayMenu(menu) {
       <div class="menu-card-content">
         <div class="menu-card-name">${item.name}</div>
         <div class="menu-card-description">${item.description}</div>
-        <div class="menu-card-price">฿${item.price}</div>
+        <div class="menu-card-price">${t('price')}${item.price}</div>
         <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${item.id}, '${escapedName}', ${item.price})">
-          🛒 เพิ่มลงตะกร้า
+          ${t('addToCart')}
         </button>
       </div>
     </div>

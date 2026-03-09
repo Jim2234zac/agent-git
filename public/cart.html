@@ -5,62 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบสั่งอาหาร - ตะกร้า</title>
   <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/translations.js"></script>
 </head>
 <body>
   <header>
-    <h1>🍽️ ระบบสั่งอาหารออนไลน์</h1>
-    <p>ตะกร้าสินค้า</p>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h1>🍽️ <span id="headerTitle">ระบบสั่งอาหารออนไลน์</span></h1>
+      <div class="language-toggle">
+        <button onclick="setLanguage('th')" class="lang-btn active" id="langTh">ไทย</button>
+        <button onclick="setLanguage('en')" class="lang-btn" id="langEn">English</button>
+      </div>
+    </div>
+    <p id="cartSubtitle">ตะกร้าสินค้า</p>
   </header>
 
   <nav>
-    <a href="/menu">🍴 เมนู</a>
-    <a href="/cart" class="active">🛒 ตะกร้า</a>
+    <a href="/menu"><span id="navMenu">🍴 เมนู</span></a>
+    <a href="/cart" class="active"><span id="navCart">🛒 ตะกร้า</span></a>
   </nav>
 
   <div class="container">
     <div class="cart-container">
       <!-- Cart Items -->
       <div class="cart-items">
-        <h2>รายการอาหารของคุณ</h2>
+        <h2 id="cartItemsTitle">รายการอาหารของคุณ</h2>
         <div id="cartItemsList">
           <div class="empty-state">
-            <p>😢 ตะกร้าว่าง</p>
-            <a href="/menu" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">← กลับไปเลือกอาหาร</a>
+            <p id="emptyCartText">😢 ตะกร้าว่าง</p>
+            <a href="/menu" style="color: var(--primary-color); text-decoration: none; font-weight: 600;"><span id="backToMenuText">← กลับไปเลือกอาหาร</span></a>
           </div>
         </div>
       </div>
 
       <!-- Cart Summary -->
       <div class="cart-summary">
-        <h3>📋 สรุปการสั่งซื้อ</h3>
+        <h3 id="orderSummaryTitle">📋 สรุปการสั่งซื้อ</h3>
         
         <div class="summary-row">
-          <span>รวมรายการ:</span>
+          <span id="totalItemsLabel">รวมรายการ:</span>
           <span id="totalItems">0</span>
         </div>
 
         <div class="summary-row">
-          <span>ราคารวม:</span>
+          <span id="subtotalLabel">ราคารวม:</span>
           <span id="subtotal">฿0</span>
         </div>
 
         <div class="summary-row">
-          <span>ค่าจัดส่ง:</span>
+          <span id="deliveryLabel">ค่าจัดส่ง:</span>
           <span id="delivery">฿0</span>
         </div>
 
         <div class="summary-row total">
-          <span>รวมทั้งสิ้น:</span>
+          <span id="totalLabel">รวมทั้งสิ้น:</span>
           <span id="totalPrice">฿0</span>
         </div>
 
         <div style="background-color: var(--light-color); padding: 15px; border-radius: var(--border-radius); margin: 15px 0;">
-          <p style="color: #666; font-size: 13px; margin: 0 0 5px 0;">โต๊ะของคุณ</p>
+          <p style="color: #666; font-size: 13px; margin: 0 0 5px 0;" id="yourTableLabel">โต๊ะของคุณ</p>
           <p style="font-size: 24px; font-weight: 700; color: var(--primary-color); margin: 0;" id="displayTableNumber">--</p>
         </div>
 
         <div>
-          <label>หมายเหตุเพิ่มเติม:</label>
+          <label id="notesLabel">หมายเหตุเพิ่มเติม:</label>
           <textarea id="notes" class="table-input" rows="3" placeholder="เช่น ไม่พีก ไม่เผ็ด เป็นต้น..."></textarea>
         </div>
 
@@ -68,7 +75,7 @@
           ✓ ยืนยันการสั่งซื้อ
         </button>
 
-        <a href="/menu" style="display: block; text-align: center; margin-top: 10px; color: var(--primary-color); text-decoration: none;">
+        <a href="/menu" style="display: block; text-align: center; margin-top: 10px; color: var(--primary-color); text-decoration: none;" id="addMoreLink">
           ← เพิ่มเติมอีกหรือไม่?
         </a>
       </div>
@@ -77,9 +84,9 @@
     <!-- Success Alert -->
     <div id="successAlert" style="display: none; margin-top: 20px;">
       <div class="alert alert-success">
-        <p>✓ สั่งอาหารสำเร็จ!</p>
-        <p>โต๊ะของคุณคือ: <strong id="successTable"></strong></p>
-        <p id="successMessage"></p>
+        <p id="successMessage">✓ สั่งอาหารสำเร็จ!</p>
+        <p id="successOrderNum"></p>
+        <p id="successEstimate"></p>
       </div>
     </div>
   </div>
