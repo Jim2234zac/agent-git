@@ -41,11 +41,21 @@ function displayMenuItems(menu) {
     const isImageUrl = item.image && (item.image.startsWith('/') || item.image.startsWith('http'));
     const imageSrc = isImageUrl ? item.image : undefined;
     const emoji = !isImageUrl ? item.image : '🍽️';
+    
+    // Properly escape for onclick handler
+    const escapedName = (item.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const escapedImage = (item.image || '🍽️').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const escapedDesc = (item.description || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    
+    let emojiStyle = '';
+    if (imageSrc) {
+      emojiStyle = ` style="background-image: url('${imageSrc}'); background-size: cover; background-position: center; font-size: 0;"`;
+    }
 
     return `
     <div class="menu-management-card">
       <div class="menu-card-header">
-        <div class="menu-emoji" style=${imageSrc ? `"background-image: url('${imageSrc}'); background-size: cover; background-position: center; font-size: 0;"` : ''}>
+        <div class="menu-emoji"${emojiStyle}>
           ${imageSrc ? '' : emoji}
         </div>
         <div class="menu-info">
@@ -56,7 +66,7 @@ function displayMenuItems(menu) {
       </div>
       ${item.description ? `<div class="menu-description">${item.description}</div>` : ''}
       <div class="menu-actions">
-        <button class="menu-edit-btn" onclick="editMenuForm(${item.id}, '${item.name}', ${item.price}, '${item.category}', '${(item.image || '🍽️').replace(/'/g, "\\'")}', '${(item.description || '').replace(/'/g, "\\'")}')">✏️ แก้ไข</button>
+        <button class="menu-edit-btn" onclick="editMenuForm(${item.id}, '${escapedName}', ${item.price}, '${item.category}', '${escapedImage}', '${escapedDesc}')">✏️ แก้ไข</button>
         <button class="menu-delete-btn" onclick="deleteMenuItem(${item.id})">🗑️ ลบ</button>
       </div>
     </div>

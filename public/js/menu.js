@@ -52,25 +52,30 @@ function displayMenu(menu) {
     const isImageUrl = item.image && (item.image.startsWith('/') || item.image.startsWith('http'));
     const imageSrc = isImageUrl ? item.image : undefined;
     const emoji = !isImageUrl ? item.image : '🍽️';
+    
+    // Properly escape strings for HTML attributes
+    const escapedName = (item.name || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const escapedDesc = (item.description || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    let imageStyle = '';
+    if (imageSrc) {
+      imageStyle = `style="background-image: url('${imageSrc}'); background-size: cover; background-position: center; font-size: 0;"`;
+    }
 
     return `
-    <div class="menu-card" onclick="addToCart(${item.id}, '${item.name}', ${item.price})">
-      <div class="menu-card-image" style="${imageSrc ? `background-image: url('${imageSrc}'); background-size: cover; background-position: center; font-size: 0;` : ''}">${imageSrc ? '' : emoji}</div>
+    <div class="menu-card" onclick="addToCart(${item.id}, '${escapedName}', ${item.price})">
+      <div class="menu-card-image" ${imageStyle}>${imageSrc ? '' : emoji}</div>
       <div class="menu-card-content">
         <div class="menu-card-name">${item.name}</div>
         <div class="menu-card-description">${item.description}</div>
         <div class="menu-card-price">฿${item.price}</div>
-        <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${item.id}, '${item.name}', ${item.price})">
+        <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${item.id}, '${escapedName}', ${item.price})">
           🛒 เพิ่มลงตะกร้า
         </button>
       </div>
     </div>
   `;
   }).join('');
-}
-      </div>
-    </div>
-  `).join('');
 }
 
 function filterMenu(category) {
