@@ -1,7 +1,13 @@
 // Load cart items
 function loadCart() {
   const cart = JSON.parse(localStorage.getItem('cart')) || [];
+  const tableNumber = localStorage.getItem('tableNumber');
   const cartItemsList = document.getElementById('cartItemsList');
+  
+  // Display table number
+  if (tableNumber) {
+    document.getElementById('displayTableNumber').textContent = tableNumber;
+  }
   
   if (cart.length === 0) {
     cartItemsList.innerHTML = `
@@ -74,11 +80,11 @@ function updateSummary() {
 
 async function checkout() {
   const cart = JSON.parse(localStorage.getItem('cart')) || [];
-  const tableNumber = document.getElementById('tableNumber').value;
+  const tableNumber = localStorage.getItem('tableNumber');
   const notes = document.getElementById('notes').value;
 
   if (!tableNumber) {
-    alert('กรุณากรอกหมายเลขโต๊ะ');
+    alert('กรุณาสแกน QR Code ของโต๊ะก่อน');
     return;
   }
 
