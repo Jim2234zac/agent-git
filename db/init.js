@@ -14,12 +14,13 @@ async function initializeDatabase() {
     try {
       await client.query(schema);
       console.log('✓ Database schema initialized successfully');
+      return true;
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('✗ Error initializing database:', error);
-    throw error;
+    console.error('✗ Error initializing database:', error.message);
+    return false;
   }
 }
 
@@ -118,13 +119,24 @@ async function migrateOrdersData() {
 // Run initialization
 async function runInit() {
   try {
-    await initializeDatabase();
+    const schemaOk = await initializeDatabase();
+    if (!schemaOk) {
+      console.log('⚠️  Database initialization failed - falling back to JSON file mode');
+      console.log('ℹ Running in JSON mode. To use PostgreSQL:');
+      console.log('  1. Make sure PostgreSQL is running');
+      console.log('  2. Check your DB_USER and DB_PASSWORD in .env');
+      console.log('  3. Create database: CREATE DATABASE food_ordering_db;');
+      return false;
+    }
+    
     await migrateMenuData();
     await migrateOrdersData();
     console.log('✓ Database initialization complete!');
+    return true;
   } catch (error) {
-    console.error('✗ Database initialization failed:', error);
-    process.exit(1);
+    console.error('✗ Database initialization failed:', error.message);
+    console.log('⚠️  Falling back to JSON file mode');
+    return false;
   }
 }
 
