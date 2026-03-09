@@ -22,5 +22,21 @@
     "price": 60,
     "category": "appetizer",
     "image": "🥢"
+  },
+  {
+    "id": 6,
+    "name": "ก๋วยเตียวหมูตุ๋น",
+    "description": "ไม่มี",
+    "price": 80,
+    "category": "noodles",
+    "image": "🍽️"
+  },
+  {
+    "id": 7,
+    "name": "กระเพรหมู",
+    "description": "สามาระบอกได้เผ็ดน้อยหรือมาก",
+    "price": 45,
+    "category": "appetizer",
+    "image": "🍽️"
   }
 ]

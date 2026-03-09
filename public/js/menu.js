@@ -48,9 +48,14 @@ function displayMenu(menu) {
     return;
   }
 
-  menuGrid.innerHTML = menu.map(item => `
+  menuGrid.innerHTML = menu.map(item => {
+    const isImageUrl = item.image && (item.image.startsWith('/') || item.image.startsWith('http'));
+    const imageSrc = isImageUrl ? item.image : undefined;
+    const emoji = !isImageUrl ? item.image : '🍽️';
+
+    return `
     <div class="menu-card" onclick="addToCart(${item.id}, '${item.name}', ${item.price})">
-      <div class="menu-card-image">${item.image}</div>
+      <div class="menu-card-image" style="${imageSrc ? `background-image: url('${imageSrc}'); background-size: cover; background-position: center; font-size: 0;` : ''}">${imageSrc ? '' : emoji}</div>
       <div class="menu-card-content">
         <div class="menu-card-name">${item.name}</div>
         <div class="menu-card-description">${item.description}</div>
@@ -58,6 +63,11 @@ function displayMenu(menu) {
         <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart(${item.id}, '${item.name}', ${item.price})">
           🛒 เพิ่มลงตะกร้า
         </button>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
       </div>
     </div>
   `).join('');

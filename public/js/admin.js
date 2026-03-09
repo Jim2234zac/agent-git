@@ -9,6 +9,26 @@ async function loadMenuItems() {
   }
 }
 
+// Image preview
+document.addEventListener('DOMContentLoaded', () => {
+  const imageFileInput = document.getElementById('menuImageFile');
+  if (imageFileInput) {
+    imageFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          document.getElementById('previewImg').src = event.target.result;
+          document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        document.getElementById('imagePreview').style.display = 'none';
+      }
+    });
+  }
+});
+
 function displayMenuItems(menu) {
   const container = document.getElementById('menuListContainer');
   
@@ -17,10 +37,17 @@ function displayMenuItems(menu) {
     return;
   }
 
-  container.innerHTML = menu.map(item => `
+  container.innerHTML = menu.map(item => {
+    const isImageUrl = item.image && (item.image.startsWith('/') || item.image.startsWith('http'));
+    const imageSrc = isImageUrl ? item.image : undefined;
+    const emoji = !isImageUrl ? item.image : '🍽️';
+
+    return `
     <div class="menu-management-card">
       <div class="menu-card-header">
-        <div class="menu-emoji">${item.image}</div>
+        <div class="menu-emoji" style=${imageSrc ? `"background-image: url('${imageSrc}'); background-size: cover; background-position: center; font-size: 0;"` : ''}>
+          ${imageSrc ? '' : emoji}
+        </div>
         <div class="menu-info">
           <div class="menu-name">${item.name}</div>
           <div class="menu-category">${getCategoryName(item.category)}</div>
@@ -29,11 +56,12 @@ function displayMenuItems(menu) {
       </div>
       ${item.description ? `<div class="menu-description">${item.description}</div>` : ''}
       <div class="menu-actions">
-        <button class="menu-edit-btn" onclick="editMenuForm(${item.id}, '${item.name}', ${item.price}, '${item.category}', '${item.image}', '${item.description || ''}')">✏️ แก้ไข</button>
+        <button class="menu-edit-btn" onclick="editMenuForm(${item.id}, '${item.name}', ${item.price}, '${item.category}', '${(item.image || '🍽️').replace(/'/g, "\\'")}', '${(item.description || '').replace(/'/g, "\\'")}')">✏️ แก้ไข</button>
         <button class="menu-delete-btn" onclick="deleteMenuItem(${item.id})">🗑️ ลบ</button>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function getCategoryName(category) {
@@ -52,12 +80,41 @@ async function addMenuItem() {
   const name = document.getElementById('menuName').value.trim();
   const price = parseFloat(document.getElementById('menuPrice').value);
   const category = document.getElementById('menuCategory').value;
-  const image = document.getElementById('menuImage').value.trim() || '🍽️';
+  const emoji = document.getElementById('menuImage').value.trim() || '🍽️';
   const description = document.getElementById('menuDescription').value.trim();
+  const imageFile = document.getElementById('menuImageFile').files[0];
 
   if (!name || !price || !category) {
     alert('กรุณากรอกข้อมูลที่จำเป็น (ชื่อ, ราคา, หมวดหมู่)');
     return;
+  }
+
+  let image = emoji;
+
+  // If image file is selected, upload it first
+  if (imageFile) {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    try {
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const uploadResult = await uploadResponse.json();
+
+      if (uploadResult.success) {
+        image = uploadResult.imageUrl;
+      } else {
+        alert('❌ ไม่สามารถอัปโหลดรูปภาพได้');
+        return;
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+      return;
+    }
   }
 
   try {
@@ -75,7 +132,9 @@ async function addMenuItem() {
       document.getElementById('menuPrice').value = '';
       document.getElementById('menuCategory').value = '';
       document.getElementById('menuImage').value = '';
+      document.getElementById('menuImageFile').value = '';
       document.getElementById('menuDescription').value = '';
+      document.getElementById('imagePreview').style.display = 'none';
       loadMenuItems();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.error);
