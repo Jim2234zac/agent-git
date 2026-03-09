@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบสั่งอาหาร - ตะกร้า</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <h1>🍽️ ระบบสั่งอาหารออนไลน์</h1>
+    <p>ตะกร้าสินค้า</p>
+  </header>
+
+  <nav>
+    <a href="/menu">🍴 เมนู</a>
+    <a href="/cart" class="active">🛒 ตะกร้า</a>
+  </nav>
+
+  <div class="container">
+    <div class="cart-container">
+      <!-- Cart Items -->
+      <div class="cart-items">
+        <h2>รายการอาหารของคุณ</h2>
+        <div id="cartItemsList">
+          <div class="empty-state">
+            <p>😢 ตะกร้าว่าง</p>
+            <a href="/menu" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">← กลับไปเลือกอาหาร</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Summary -->
+      <div class="cart-summary">
+        <h3>📋 สรุปการสั่งซื้อ</h3>
+        
+        <div class="summary-row">
+          <span>รวมรายการ:</span>
+          <span id="totalItems">0</span>
+        </div>
+
+        <div class="summary-row">
+          <span>ราคารวม:</span>
+          <span id="subtotal">฿0</span>
+        </div>
+
+        <div class="summary-row">
+          <span>ค่าจัดส่ง:</span>
+          <span id="delivery">฿0</span>
+        </div>
+
+        <div class="summary-row total">
+          <span>รวมทั้งสิ้น:</span>
+          <span id="totalPrice">฿0</span>
+        </div>
+
+        <div>
+          <label>หมายเลขโต๊ะ: *</label>
+          <input type="number" id="tableNumber" placeholder="กรุณากรอกหมายเลขโต๊ะ" min="1" max="99" class="table-input">
+        </div>
+
+        <div>
+          <label>หมายเหตุเพิ่มเติม:</label>
+          <textarea id="notes" class="table-input" rows="3" placeholder="เช่น ไม่พีก ไม่เผ็ด เป็นต้น..."></textarea>
+        </div>
+
+        <button id="checkoutBtn" class="checkout-btn" onclick="checkout()" disabled>
+          ✓ ยืนยันการสั่งซื้อ
+        </button>
+
+        <a href="/menu" style="display: block; text-align: center; margin-top: 10px; color: var(--primary-color); text-decoration: none;">
+          ← เพิ่มเติมอีกหรือไม่?
+        </a>
+      </div>
+    </div>
+
+    <!-- Success Alert -->
+    <div id="successAlert" style="display: none; margin-top: 20px;">
+      <div class="alert alert-success">
+        <p>✓ สั่งอาหารสำเร็จ!</p>
+        <p>โต๊ะของคุณคือ: <strong id="successTable"></strong></p>
+        <p id="successMessage"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/cart.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบสั่งอาหาร - เมนู</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <h1>🍽️ ระบบสั่งอาหารออนไลน์</h1>
+    <p id="tableInfo"></p>
+  </header>
+
+  <nav>
+    <a href="/menu" class="active">🍴 เมนู</a>
+    <a href="/cart">🛒 ตะกร้า</a>
+  </nav>
+
+  <div class="container">
+    <!-- Table Selection (ถ้าจำเป็น) -->
+    <div id="tableSelection" style="display: none; margin: 20px 0; text-align: center;">
+      <input type="number" id="tableNumber" placeholder="กรุณากรอกหมายเลขโต๊ะ" min="1" max="99" class="table-input" style="max-width: 300px;">
+      <button onclick="setTableNumber()" class="checkout-btn" style="max-width: 300px;">ยืนยันโต๊ะ</button>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="category-filter">
+      <button class="category-btn active" onclick="filterMenu('all')">ทั้งหมด</button>
+      <button class="category-btn" onclick="filterMenu('appetizer')">อาหารจานเล็ก</button>
+      <button class="category-btn" onclick="filterMenu('noodles')">เส้นก๊วยเตี๋ยว</button>
+      <button class="category-btn" onclick="filterMenu('rice')">ข้าว</button>
+      <button class="category-btn" onclick="filterMenu('curry')">แกง</button>
+      <button class="category-btn" onclick="filterMenu('soup')">น้ำซุป</button>
+      <button class="category-btn" onclick="filterMenu('beverage')">เครื่องดื่ม</button>
+    </div>
+
+    <!-- Menu Grid -->
+    <div class="menu-grid" id="menuGrid">
+      <!-- จะอัปเดตด้วย JavaScript -->
+    </div>
+
+    <div id="loading" style="text-align: center; padding: 40px;">
+      <p>⏳ กำลังโหลดเมนู...</p>
+    </div>
+  </div>
+
+  <script src="/js/menu.js"></script>
+</body>
+</html>

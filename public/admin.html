@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบสั่งอาหาร - Admin Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <h1>⚙️ Admin Dashboard</h1>
+    <p>จัดการคำสั่งชนิดอาหาร</p>
+  </header>
+
+  <nav>
+    <a href="/">🏠 หน้าหลัก</a>
+    <a href="/admin" class="active">⚙️ Admin</a>
+    <button onclick="location.href='/generate-qr/' + prompt('กรุณากรอกหมายเลขโต๊ะ:') || ''" style="background: none; border: none; color: var(--dark-color); font-weight: 500; cursor: pointer; padding: 8px 15px;">📱 สร้าง QR Code</button>
+  </nav>
+
+  <div class="container">
+    <!-- Statistics -->
+    <h2>📊 สถิติ</h2>
+    <div class="admin-grid">
+      <div class="stat-card">
+        <p class="stat-label">คำสั่งทั้งหมด</p>
+        <p class="stat-number" id="totalOrders">0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">กำลังเตรียม</p>
+        <p class="stat-number" id="pendingOrders">0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">กำลังเตรียม</p>
+        <p class="stat-number" id="preparingOrders">0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">เสร็จแล้ว</p>
+        <p class="stat-number" id="completedOrders">0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">ยอดขายรวม</p>
+        <p class="stat-number" id="totalRevenue">฿0</p>
+      </div>
+    </div>
+
+    <!-- Orders Management -->
+    <h2 style="margin-top: 40px;">📦 คำสั่งซื้อ</h2>
+    <div style="overflow-x: auto;">
+      <table class="orders-table" id="ordersTable">
+        <thead>
+          <tr>
+            <th>โต๊ะ</th>
+            <th>รายการ</th>
+            <th>ราคารวม</th>
+            <th>สถานะ</th>
+            <th>เวลา</th>
+            <th>การดำเนินการ</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody">
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px;">
+              <p>⏳ กำลังโหลด...</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="emptyOrders" style="display: none;">
+      <div class="empty-state">
+        <p>📭 ยังไม่มีคำสั่งซื้อ</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Modal -->
+  <div id="qrModal" class="modal">
+    <div class="modal-content">
+      <h2>📱 QR Code สำหรับโต๊ะ</h2>
+      <div id="qrCodeContainer" style="text-align: center; margin: 20px 0;">
+        <!-- QR Code จะแสดงที่นี่ -->
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-confirm" onclick="printQR()">🖨️ พิมพ์</button>
+        <button class="modal-btn modal-btn-cancel" onclick="closeQRModal()">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

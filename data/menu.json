@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "name": "Pad Thai",
+    "description": "สตัดอาหารไทย กุ้ง ไก่ มหาชน",
+    "price": 80,
+    "category": "noodles",
+    "image": "🍝"
+  },
+  {
+    "id": 2,
+    "name": "Green Curry",
+    "description": "แกงเขียวหวาน ไก่",
+    "price": 120,
+    "category": "curry",
+    "image": "🍲"
+  },
+  {
+    "id": 3,
+    "name": "Tom Yum Shrimp",
+    "description": "น้ำซุปเต้อกุ้ง",
+    "price": 100,
+    "category": "soup",
+    "image": "🍜"
+  },
+  {
+    "id": 4,
+    "name": "Fried Rice",
+    "description": "ข้าวผัดไก่",
+    "price": 90,
+    "category": "rice",
+    "image": "🍚"
+  },
+  {
+    "id": 5,
+    "name": "Spring Roll",
+    "description": "ปอเปียงทอด (5 ชิ้น)",
+    "price": 60,
+    "category": "appetizer",
+    "image": "🥢"
+  },
+  {
+    "id": 6,
+    "name": "Mango Smoothie",
+    "description": "น้ำแมงโกไข่",
+    "price": 50,
+    "category": "beverage",
+    "image": "🥤"
+  }
+]
