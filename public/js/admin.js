@@ -1,3 +1,167 @@
+// Category Management Functions
+async function loadCategories() {
+  try {
+    const response = await fetch('/api/categories');
+    const categories = await response.json();
+    displayCategories(categories);
+  } catch (error) {
+    console.error('Error loading categories:', error);
+  }
+}
+
+function displayCategories(categories) {
+  const tbody = document.getElementById('categoriesTableBody');
+  
+  if (categories.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">ไม่มีหมวดหมู่</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = categories.map(cat => `
+    <tr>
+      <td style="font-weight: 600; color: var(--primary-color);">${cat.id}</td>
+      <td>${cat.name}</td>
+      <td>${cat.name_en}</td>
+      <td style="text-align: center;"><span style="background: var(--light-color); padding: 5px 10px; border-radius: 4px;" id="count_${cat.id}">-</span></td>
+      <td>
+        <button class="action-btn complete" onclick="editCategory('${cat.id}', '${cat.name}', '${cat.name_en}')" style="background-color: var(--secondary-color);">✏️ แก้ไข</button>
+        <button class="action-btn delete" onclick="deleteCategory('${cat.id}')">🗑️ ลบ</button>
+      </td>
+    </tr>
+  `).join('');
+  
+  // Count items in each category
+  countItemsPerCategory(categories);
+}
+
+async function countItemsPerCategory(categories) {
+  try {
+    const response = await fetch('/api/menu');
+    const menu = await response.json();
+    
+    categories.forEach(cat => {
+      const count = menu.filter(item => item.category === cat.id).length;
+      const countElement = document.getElementById(`count_${cat.id}`);
+      if (countElement) {
+        countElement.textContent = count;
+      }
+    });
+  } catch (error) {
+    console.error('Error counting items:', error);
+  }
+}
+
+async function addCategory() {
+  const id = document.getElementById('categoryId').value.trim().toLowerCase();
+  const name = document.getElementById('categoryNameTh').value.trim();
+  const name_en = document.getElementById('categoryNameEn').value.trim();
+
+  if (!id || !name || !name_en) {
+    alert('กรุณากอกข้อมูลที่จำเป็น (ID, ชื่อไทย, ชื่ออังกฤษ)');
+    return;
+  }
+
+  // Validate ID format (alphanumeric and hyphens only)
+  if (!/^[a-z0-9-]+$/.test(id)) {
+    alert('ID ต้องเป็นตัวอักษรเล็ก ตัวเลข หรือขีดกลาง เท่านั้น');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, name, name_en })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      alert('✓ เพิ่มหมวดหมู่สำเร็จ!');
+      document.getElementById('categoryId').value = '';
+      document.getElementById('categoryNameTh').value = '';
+      document.getElementById('categoryNameEn').value = '';
+      loadCategories();
+      
+      // Also update menu category select
+      updateCategorySelect();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('ไม่สามารถเพิ่มหมวดหมู่ได้');
+  }
+}
+
+async function editCategory(id, name, name_en) {
+  const newName = prompt('ชื่อไทย:', name);
+  if (newName === null) return;
+
+  const newNameEn = prompt('ชื่ออังกฤษ:', name_en);
+  if (newNameEn === null) return;
+
+  try {
+    const response = await fetch(`/api/categories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName, name_en: newNameEn })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      alert('✓ แก้ไขสำเร็จ!');
+      loadCategories();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('ไม่สามารถแก้ไขได้');
+  }
+}
+
+async function deleteCategory(id) {
+  if (!confirm('ยืนยันการลบหมวดหมู่นี้?')) return;
+
+  try {
+    const response = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+    const result = await response.json();
+
+    if (result.success) {
+      alert('✓ ลบสำเร็จ!');
+      loadCategories();
+      updateCategorySelect();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('ไม่สามารถลบได้');
+  }
+}
+
+function updateCategorySelect() {
+  const categorySelect = document.getElementById('menuCategory');
+  if (!categorySelect) return;
+  
+  fetch('/api/categories')
+    .then(res => res.json())
+    .then(categories => {
+      const currentValue = categorySelect.value;
+      categorySelect.innerHTML = '<option value="">-- เลือกหมวดหมู่ --</option>';
+      categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.id;
+        option.textContent = cat.name;
+        categorySelect.appendChild(option);
+      });
+      categorySelect.value = currentValue;
+    })
+    .catch(error => console.error('Error updating category select:', error));
+}
+
 // Menu Management Functions
 async function loadMenuItems() {
   try {
@@ -239,8 +403,26 @@ function displayOrders(orders) {
   emptyOrders.style.display = 'none';
   
   ordersBody.innerHTML = orders.map(order => {
-    const createdTime = new Date(order.createdAt).toLocaleString('th-TH');
-    const itemsText = order.items.map(item => `${item.name} x${item.quantity}`).join(', ');
+    const createdTime = new Date(order.createdAt || order.created_at).toLocaleString('th-TH');
+    
+    // Parse items - handle both array and JSON string from database
+    let items = order.items;
+    if (typeof items === 'string') {
+      try {
+        items = JSON.parse(items);
+      } catch (e) {
+        items = [];
+      }
+    }
+    
+    const itemsText = items.map(item => {
+      let itemStr = `${item.name} x${item.quantity}`;
+      if (item.notes) {
+        itemStr += ` (📝 ${item.notes})`;
+      }
+      return itemStr;
+    }).join('; ');
+    
     const statusColor = 
       order.status === 'pending' ? 'status-pending' :
       order.status === 'preparing' ? 'status-preparing' :
@@ -252,9 +434,9 @@ function displayOrders(orders) {
 
     return `
       <tr>
-        <td><strong>โต๊ะ ${order.tableNumber}</strong></td>
+        <td><strong>โต๊ะ ${order.table_number || order.tableNumber}</strong></td>
         <td>${itemsText}</td>
-        <td>฿${order.totalPrice}</td>
+        <td>฿${order.total_price || order.totalPrice}</td>
         <td><span class="status-badge ${statusColor}">${statusText}</span></td>
         <td>${createdTime}</td>
         <td>
@@ -275,13 +457,13 @@ function updateStatistics(orders) {
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
   const preparingOrders = orders.filter(o => o.status === 'preparing').length;
   const completedOrders = orders.filter(o => o.status === 'completed').length;
-  const totalRevenue = orders.reduce((sum, o) => sum + o.totalPrice, 0);
+  const totalRevenue = orders.reduce((sum, o) => sum + (parseFloat(o.total_price) || parseFloat(o.totalPrice) || 0), 0);
 
   document.getElementById('totalOrders').textContent = totalOrders;
   document.getElementById('pendingOrders').textContent = pendingOrders;
   document.getElementById('preparingOrders').textContent = preparingOrders;
   document.getElementById('completedOrders').textContent = completedOrders;
-  document.getElementById('totalRevenue').textContent = `฿${totalRevenue}`;
+  document.getElementById('totalRevenue').textContent = `฿${totalRevenue.toFixed(2)}`;
 }
 
 async function updateOrderStatus(orderId, newStatus) {
@@ -435,6 +617,8 @@ setInterval(loadOrders, 5000);
 document.addEventListener('DOMContentLoaded', () => {
   loadOrders();
   loadMenuItems();
+  loadCategories();
+  updateCategorySelect();
 });
 
 // Close modal when clicking outside

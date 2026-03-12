@@ -36,6 +36,14 @@ header p {
   opacity: 0.9;
 }
 
+#tableInfo {
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  margin: 15px 0 0 0;
+  letter-spacing: 1px;
+}
+
 /* Language Toggle Styles */
 .language-toggle {
   display: flex;

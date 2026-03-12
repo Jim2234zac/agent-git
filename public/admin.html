@@ -59,6 +59,52 @@
       </div>
     </div>
 
+    <!-- Category Management -->
+    <h2 style="margin-top: 40px;">🏷️ จัดการหมวดหมู่</h2>
+    <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 20px 0;">
+      <h3>➕ เพิ่มหมวดหมู่ใหม่</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">ID หมวดหมู่: *</label>
+          <input type="text" id="categoryId" placeholder="เช่น appetizer" class="table-input" style="margin: 0; text-transform: lowercase;">
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">ชื่อไทย: *</label>
+          <input type="text" id="categoryNameTh" placeholder="เช่น 🥘 อาหารจานเล็ก" class="table-input" style="margin: 0;">
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">ชื่ออังกฤษ: *</label>
+          <input type="text" id="categoryNameEn" placeholder="เช่น Appetizers" class="table-input" style="margin: 0;">
+        </div>
+      </div>
+      <button class="checkout-btn" onclick="addCategory()" style="width: 100%; margin-top: 15px; background-color: var(--secondary-color);">✓ เพิ่มหมวดหมู่</button>
+    </div>
+
+    <!-- Category List -->
+    <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 20px 0;">
+      <h3 style="margin-bottom: 15px;">📋 หมวดหมู่ปัจจุบัน</h3>
+      <div style="overflow-x: auto;">
+        <table class="orders-table" style="width: 100%; margin: 0;">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>ชื่อไทย</th>
+              <th>ชื่ออังกฤษ</th>
+              <th>จำนวนอาหาร</th>
+              <th>การดำเนินการ</th>
+            </tr>
+          </thead>
+          <tbody id="categoriesTableBody">
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 40px;">
+                <p>⏳ กำลังโหลด...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Menu Management -->
     <h2 style="margin-top: 40px;">🍴 จัดการเมนูอาหาร</h2>
     <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 20px 0;">

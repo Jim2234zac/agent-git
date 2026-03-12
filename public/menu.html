@@ -33,13 +33,7 @@
 
     <!-- Category Filter -->
     <div class="category-filter" id="categoryFilter">
-      <button class="category-btn active" onclick="filterMenu('all')" data-key="all">ทั้งหมด</button>
-      <button class="category-btn" onclick="filterMenu('appetizer')" data-key="appetizer">อาหารจานเล็ก</button>
-      <button class="category-btn" onclick="filterMenu('noodles')" data-key="noodles">เส้นก๊วยเตี๋ยว</button>
-      <button class="category-btn" onclick="filterMenu('rice')" data-key="rice">ข้าว</button>
-      <button class="category-btn" onclick="filterMenu('curry')" data-key="curry">แกง</button>
-      <button class="category-btn" onclick="filterMenu('soup')" data-key="soup">น้ำซุป</button>
-      <button class="category-btn" onclick="filterMenu('beverage')" data-key="beverage">เครื่องดื่ม</button>
+      <!-- จะอัปเดตด้วย JavaScript จาก API -->
     </div>
 
     <!-- Menu Grid -->
@@ -49,6 +43,23 @@
 
     <div id="loading" style="text-align: center; padding: 40px;">
       <p id="loadingText">⏳ กำลังโหลดเมนู...</p>
+    </div>
+  </div>
+
+  <!-- Add to Cart with Notes Modal -->
+  <div id="notesModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <h2 style="margin-bottom: 15px;">📝 เพิ่มหมายเหตุ</h2>
+      <div style="margin-bottom: 20px;">
+        <p id="itemNameDisplay" style="font-size: 18px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;"></p>
+        <label style="display: block; margin-bottom: 8px; font-weight: 600;">หมายเหตุพิเศษ (เช่น ไม่เอาผัก ไม่เผ็ด): </label>
+        <textarea id="itemNotes" class="table-input" rows="4" placeholder="กรุณากรอกหมายเหตุเพิ่มเติม..." style="margin: 0; resize: vertical;"></textarea>
+        <small style="display: block; color: #999; margin-top: 5px;">หมายเหตุนี้จะปรากฏในหน้าตะกร้าและคำสั่ง</small>
+      </div>
+      <div class="modal-buttons" style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="modal-btn modal-btn-cancel" onclick="closeNotesModal()">ยกเลิก</button>
+        <button class="modal-btn modal-btn-confirm" style="background-color: var(--secondary-color); color: white;" onclick="confirmAddToCart()">✓ เพิ่มลงตะกร้า</button>
+      </div>
     </div>
   </div>
 

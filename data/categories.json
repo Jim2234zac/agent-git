@@ -1,0 +1,17 @@
+[
+  {
+    "id": "appetizer",
+    "name": "ข้าว",
+    "name_en": "Appetizers"
+  },
+  {
+    "id": "noodles",
+    "name": "เส้นก๋วยเตี๋ยว",
+    "name_en": "Noodles & Pasta"
+  },
+  {
+    "id": "drink",
+    "name": "เครื่องดื่ม",
+    "name_en": "Water"
+  }
+]

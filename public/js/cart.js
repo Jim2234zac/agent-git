@@ -25,6 +25,7 @@ function loadCart() {
     <div class="cart-item">
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
+        ${item.notes ? `<div style="font-size: 12px; color: #666; margin-top: 3px;">📝 ${item.notes}</div>` : ''}
         <div class="cart-item-price">${t('price')}${item.price}</div>
       </div>
       <div class="cart-item-quantity">

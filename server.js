@@ -16,6 +16,7 @@ const { runInit } = require('./db/init');
 // Data files (fallback for JSON mode)
 const menuFile = path.join(__dirname, 'data', 'menu.json');
 const ordersFile = path.join(__dirname, 'data', 'orders.json');
+const categoriesFile = path.join(__dirname, 'data', 'categories.json');
 
 // Middleware
 app.use(express.json());
@@ -358,6 +359,111 @@ app.delete('/api/menu/:id', async (req, res) => {
     }
   } catch (error) {
     console.error('Error deleting menu item:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Get all categories
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = readJSON(categoriesFile);
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Add new category
+app.post('/api/categories', async (req, res) => {
+  const { id, name, name_en } = req.body;
+  
+  if (!id || !name || !name_en) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+  
+  try {
+    const categories = readJSON(categoriesFile);
+    
+    // Check if ID already exists
+    if (categories.some(cat => cat.id === id)) {
+      return res.status(400).json({ success: false, error: 'Category ID already exists' });
+    }
+    
+    const newCategory = { id, name, name_en };
+    categories.push(newCategory);
+    writeJSON(categoriesFile, categories);
+    
+    res.json({ success: true, category: newCategory });
+  } catch (error) {
+    console.error('Error adding category:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Update category
+app.put('/api/categories/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, name_en } = req.body;
+  
+  if (!name || !name_en) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+  
+  try {
+    let categories = readJSON(categoriesFile);
+    const categoryIndex = categories.findIndex(cat => cat.id === id);
+    
+    if (categoryIndex === -1) {
+      return res.status(404).json({ success: false, error: 'Category not found' });
+    }
+    
+    categories[categoryIndex].name = name;
+    categories[categoryIndex].name_en = name_en;
+    writeJSON(categoriesFile, categories);
+    
+    res.json({ success: true, category: categories[categoryIndex] });
+  } catch (error) {
+    console.error('Error updating category:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Delete category
+app.delete('/api/categories/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Check if any menu items use this category
+    if (useDatabase) {
+      const result = await pool.query(
+        'SELECT COUNT(*) as count FROM menu_items WHERE category = $1',
+        [id]
+      );
+      
+      if (result.rows[0].count > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          error: `Cannot delete category with ${result.rows[0].count} menu items. Please delete or move items first.` 
+        });
+      }
+    } else {
+      const menu = readJSON(menuFile);
+      const itemsInCategory = menu.filter(m => m.category === id);
+      if (itemsInCategory.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          error: `Cannot delete category with ${itemsInCategory.length} menu items. Please delete or move items first.` 
+        });
+      }
+    }
+    
+    // If no items in category, allow deletion
+    let categories = readJSON(categoriesFile);
+    categories = categories.filter(cat => cat.id !== id);
+    writeJSON(categoriesFile, categories);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting category:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

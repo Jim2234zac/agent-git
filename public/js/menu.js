@@ -25,17 +25,35 @@ function initLanguage() {
   }
   
   // Update category buttons
-  updateCategoryButtons();
+  loadCategoryButtons();
+}
+
+// Load category buttons from API
+async function loadCategoryButtons() {
+  try {
+    const response = await fetch('/api/categories');
+    const categories = await response.json();
+    renderCategoryButtons(categories);
+  } catch (error) {
+    console.error('Error loading categories:', error);
+  }
+}
+
+// Render category buttons
+function renderCategoryButtons(categories) {
+  const filterDiv = document.getElementById('categoryFilter');
+  
+  let html = '<button class="category-btn active" onclick="filterMenu(\'all\')" data-key="all">ทั้งหมด</button>';
+  
+  categories.forEach(cat => {
+    html += `<button class="category-btn" onclick="filterMenu('${cat.id}')" data-key="${cat.id}">${cat.name}</button>`;
+  });
+  
+  filterDiv.innerHTML = html;
 }
 
 function updateCategoryButtons() {
-  const categories = ['all', 'appetizer', 'noodles', 'rice', 'curry', 'soup', 'beverage'];
-  document.querySelectorAll('.category-btn').forEach(btn => {
-    const key = btn.dataset.key;
-    if (categories.includes(key)) {
-      btn.textContent = t(key);
-    }
-  });
+  // This is now handled by loadCategoryButtons()
 }
 
 // Update table info
@@ -141,22 +159,70 @@ function filterMenu(category) {
   }
 }
 
+// Store current item being added to cart
+let currentItemBeingAdded = null;
+
 function addToCart(id, name, price) {
+  // Store item info and open modal for notes
+  currentItemBeingAdded = { id, name, price, quantity: 1 };
+  
+  // Display item name in modal
+  document.getElementById('itemNameDisplay').textContent = `${name} (฿${price})`;
+  document.getElementById('itemNotes').value = '';
+  
+  // Show modal
+  document.getElementById('notesModal').style.display = 'block';
+}
+
+function closeNotesModal() {
+  document.getElementById('notesModal').style.display = 'none';
+  currentItemBeingAdded = null;
+}
+
+function confirmAddToCart() {
+  if (!currentItemBeingAdded) return;
+  
+  const notes = document.getElementById('itemNotes').value.trim();
   let cart = JSON.parse(localStorage.getItem('cart')) || [];
   
-  // Check if item already exists
-  const existingItem = cart.find(item => item.id === id);
+  // Create unique key for items with different notes
+  const itemKey = `${currentItemBeingAdded.id}_${notes}`;
+  
+  // Check if item with same notes already exists
+  const existingItem = cart.find(item => 
+    item.id === currentItemBeingAdded.id && 
+    (item.notes || '') === notes
+  );
   
   if (existingItem) {
-    existingItem.quantity += 1;
+    existingItem.quantity += currentItemBeingAdded.quantity;
   } else {
-    cart.push({ id, name, price, quantity: 1 });
+    const newItem = {
+      id: currentItemBeingAdded.id,
+      name: currentItemBeingAdded.name,
+      price: currentItemBeingAdded.price,
+      quantity: currentItemBeingAdded.quantity,
+      notes: notes
+    };
+    cart.push(newItem);
   }
   
   localStorage.setItem('cart', JSON.stringify(cart));
   
+  // Close modal
+  closeNotesModal();
+  
   // Show notification
-  alert(`✓ เพิ่ม ${name} ลงตะกร้าแล้ว`);
+  const noteText = notes ? ` (${notes})` : '';
+  alert(`✓ เพิ่ม ${currentItemBeingAdded.name}${noteText} ลงตะกร้าแล้ว`);
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('notesModal');
+  if (event.target === modal) {
+    closeNotesModal();
+  }
 }
 
 // Load menu on page load
