@@ -378,11 +378,123 @@ async function deleteMenuItem(id) {
   }
 }
 
+// Notification system
+let lastOrderCount = 0;
+let notificationSound = null;
+
+// Initialize notification sound
+function initNotificationSound() {
+  try {
+    // Create a simple beep sound using Web Audio API
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800; // 800Hz
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (error) {
+    console.log('Audio not supported:', error);
+  }
+}
+
+// Play notification sound
+function playNotificationSound() {
+  try {
+    initNotificationSound();
+  } catch (error) {
+    console.log('Could not play sound:', error);
+  }
+}
+
+// Show browser notification
+function showBrowserNotification(order) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('🍽️ คำสั่งซื้อใหม่!', {
+      body: `โต๊ะ ${order.table_number} - ราคา ฿${order.total_price}`,
+      icon: '/favicon.ico',
+      tag: 'new-order'
+    });
+  } else if ('Notification' in window && Notification.permission !== 'denied') {
+    Notification.requestPermission();
+  }
+}
+
+// Show new order notification
+function showNewOrderNotification(newOrders) {
+  if (newOrders.length === 0) return;
+  
+  const latestOrder = newOrders[0];
+  
+  // Show notification alert
+  const alert = document.getElementById('newOrderAlert');
+  const details = document.getElementById('newOrderDetails');
+  
+  details.innerHTML = `โต๊ะ ${latestOrder.table_number} - ฿${latestOrder.total_price} - เมื่อ ${new Date(latestOrder.created_at).toLocaleTimeString('th-TH')}`;
+  alert.style.display = 'block';
+  
+  // Show notification bell
+  const bell = document.getElementById('notificationBell');
+  const badge = document.getElementById('notificationBadge');
+  
+  bell.style.display = 'block';
+  badge.textContent = newOrders.length;
+  badge.classList.add('notification-badge-animate');
+  
+  // Play sound
+  playNotificationSound();
+  
+  // Show browser notification
+  showBrowserNotification(latestOrder);
+  
+  // Clear notification after 10 seconds
+  setTimeout(() => {
+    if (alert.style.display === 'block') {
+      clearNotification();
+    }
+  }, 10000);
+}
+
+// Clear notification
+function clearNotification() {
+  const alert = document.getElementById('newOrderAlert');
+  const bell = document.getElementById('notificationBell');
+  const badge = document.getElementById('notificationBadge');
+  
+  alert.style.display = 'none';
+  bell.style.display = 'none';
+  badge.textContent = '0';
+  badge.classList.remove('notification-badge-animate');
+  
+  // Reset last order count
+  lastOrderCount = document.querySelectorAll('#ordersBody tr').length;
+}
+
 // Load orders
 async function loadOrders() {
   try {
     const response = await fetch('/api/orders');
     const orders = await response.json();
+    
+    // Check for new orders
+    if (orders.length > lastOrderCount && lastOrderCount > 0) {
+      const newOrders = orders.slice(0, orders.length - lastOrderCount);
+      showNewOrderNotification(newOrders);
+    }
+    
+    // Update last order count
+    if (lastOrderCount === 0) {
+      lastOrderCount = orders.length;
+    }
+    
     displayOrders(orders);
     updateStatistics(orders);
   } catch (error) {
@@ -402,8 +514,11 @@ function displayOrders(orders) {
 
   emptyOrders.style.display = 'none';
   
-  ordersBody.innerHTML = orders.map(order => {
+  const currentTime = new Date();
+  ordersBody.innerHTML = orders.map((order, index) => {
     const createdTime = new Date(order.createdAt || order.created_at).toLocaleString('th-TH');
+    const orderAge = currentTime - new Date(order.createdAt || order.created_at);
+    const isNewOrder = orderAge < 60000; // Less than 1 minute = new order
     
     // Parse items - handle both array and JSON string from database
     let items = order.items;
@@ -432,9 +547,12 @@ function displayOrders(orders) {
       order.status === 'preparing' ? '👨‍🍳 กำลังเตรียม' :
       '✓ เสร็จแล้ว';
 
+    const rowClass = isNewOrder ? 'new-order-row' : '';
+    const newBadge = isNewOrder ? '<span style="background: #ff6b6b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 5px;">NEW</span>' : '';
+
     return `
-      <tr>
-        <td><strong>โต๊ะ ${order.table_number || order.tableNumber}</strong></td>
+      <tr class="${rowClass}">
+        <td><strong>โต๊ะ ${order.table_number || order.tableNumber}</strong>${newBadge}</td>
         <td>${itemsText}</td>
         <td>฿${order.total_price || order.totalPrice}</td>
         <td><span class="status-badge ${statusColor}">${statusText}</span></td>
@@ -619,6 +737,11 @@ document.addEventListener('DOMContentLoaded', () => {
   loadMenuItems();
   loadCategories();
   updateCategorySelect();
+  
+  // Request notification permission
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
 });
 
 // Close modal when clicking outside
