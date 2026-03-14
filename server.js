@@ -149,6 +149,8 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
 // API: Add order
 app.post('/api/orders', async (req, res) => {
   const { tableNumber, items, totalPrice, notes } = req.body;
+  console.log('Received order request:', { tableNumber, items, totalPrice, notes });
+  
   try {
     if (useDatabase) {
       const result = await pool.query(
@@ -174,20 +176,28 @@ app.post('/api/orders', async (req, res) => {
     }
   } catch (error) {
     console.error('Error creating order:', error);
+    console.log('Falling back to JSON storage...');
+    
     // Fallback to JSON
-    const orders = readJSON(ordersFile);
-    const order = {
-      id: Date.now(),
-      tableNumber,
-      items,
-      totalPrice,
-      status: 'pending',
-      notes: notes || '',
-      createdAt: new Date().toISOString()
-    };
-    orders.push(order);
-    writeJSON(ordersFile, orders);
-    res.json({ success: true, orderId: order.id, order });
+    try {
+      const orders = readJSON(ordersFile);
+      const order = {
+        id: Date.now(),
+        tableNumber,
+        items,
+        totalPrice,
+        status: 'pending',
+        notes: notes || '',
+        createdAt: new Date().toISOString()
+      };
+      orders.push(order);
+      writeJSON(ordersFile, orders);
+      console.log('Order saved to JSON:', order);
+      res.json({ success: true, orderId: order.id, order });
+    } catch (fallbackError) {
+      console.error('JSON fallback also failed:', fallbackError);
+      res.status(500).json({ success: false, error: 'Failed to save order' });
+    }
   }
 });
 

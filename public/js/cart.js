@@ -85,6 +85,8 @@ async function checkout() {
   const tableNumber = localStorage.getItem('tableNumber');
   const notes = document.getElementById('notes').value;
 
+  console.log('Checkout started:', { cart, tableNumber, notes });
+
   if (!tableNumber) {
     alert(t('scanQRFirst'));
     return;
@@ -96,6 +98,14 @@ async function checkout() {
   }
 
   const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const orderData = {
+    tableNumber: parseInt(tableNumber),
+    items: cart,
+    totalPrice: totalPrice,
+    notes: notes
+  };
+
+  console.log('Sending order:', orderData);
 
   try {
     const response = await fetch('/api/orders', {
@@ -103,15 +113,15 @@ async function checkout() {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        tableNumber: parseInt(tableNumber),
-        items: cart,
-        totalPrice: totalPrice,
-        notes: notes
-      })
+      body: JSON.stringify(orderData)
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+
     const result = await response.json();
+    
+    console.log('Response result:', result);
 
     if (result.success) {
       // Clear cart
@@ -136,11 +146,12 @@ async function checkout() {
         location.href = '/menu';
       }, 5000);
     } else {
-      alert(t('orderError') + ': ' + result.error);
+      console.error('Order failed:', result);
+      alert(t('orderError') + ': ' + (result.error || 'Unknown error'));
     }
   } catch (error) {
-    console.error('Error:', error);
-    alert(t('orderFailed'));
+    console.error('Network error:', error);
+    alert(t('orderFailed') + ': ' + error.message);
   }
 }
 
