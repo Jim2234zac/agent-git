@@ -412,31 +412,58 @@ let notificationSound = null;
 // Initialize notification sound
 function initNotificationSound() {
   try {
-    // Create a simple beep sound using Web Audio API
+    // Create a more pleasant notification sound using Web Audio API
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
+    
+    // Create multiple oscillators for a richer sound
+    const oscillator1 = audioContext.createOscillator();
+    const oscillator2 = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     
-    oscillator.connect(gainNode);
+    // Connect oscillators to gain
+    oscillator1.connect(gainNode);
+    oscillator2.connect(gainNode);
     gainNode.connect(audioContext.destination);
     
-    oscillator.frequency.value = 800; // 800Hz
-    oscillator.type = 'sine';
+    // Set frequencies for a pleasant chord (C major)
+    oscillator1.frequency.value = 523.25; // C5
+    oscillator2.frequency.value = 659.25; // E5
     
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    oscillator1.type = 'sine';
+    oscillator2.type = 'sine';
     
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
+    // Envelope for smooth fade in/out
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.05);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+    
+    // Start and stop
+    oscillator1.start(audioContext.currentTime);
+    oscillator2.start(audioContext.currentTime);
+    oscillator1.stop(audioContext.currentTime + 0.8);
+    oscillator2.stop(audioContext.currentTime + 0.8);
+    
   } catch (error) {
     console.log('Audio not supported:', error);
   }
 }
 
-// Play notification sound
+// Play notification sound with multiple beeps
 function playNotificationSound() {
   try {
+    // Play first beep
     initNotificationSound();
+    
+    // Play second beep after 300ms
+    setTimeout(() => {
+      initNotificationSound();
+    }, 300);
+    
+    // Play third beep after 600ms
+    setTimeout(() => {
+      initNotificationSound();
+    }, 600);
+    
   } catch (error) {
     console.log('Could not play sound:', error);
   }
@@ -510,6 +537,13 @@ async function loadOrders() {
   try {
     const response = await fetch('/api/orders');
     const orders = await response.json();
+    
+    // Sort orders by created_at descending (newest first)
+    orders.sort((a, b) => {
+      const dateA = new Date(a.created_at || a.createdAt);
+      const dateB = new Date(b.created_at || b.createdAt);
+      return dateB - dateA; // Newest first
+    });
     
     // Check for new orders
     if (orders.length > lastOrderCount && lastOrderCount > 0) {

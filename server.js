@@ -245,28 +245,25 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
-// API: Get all orders (for admin)
+// API: Get orders
 app.get('/api/orders', async (req, res) => {
   try {
     if (useDatabase) {
       const result = await pool.query('SELECT * FROM orders ORDER BY created_at DESC');
       res.json(result.rows);
     } else {
-      // JSON fallback
+      // JSON fallback - sort by created_at descending
       const orders = readJSON(ordersFile);
+      orders.sort((a, b) => {
+        const dateA = new Date(a.created_at || a.createdAt);
+        const dateB = new Date(b.created_at || b.createdAt);
+        return dateB - dateA; // Newest first
+      });
       res.json(orders);
     }
   } catch (error) {
     console.error('Error fetching orders:', error);
-    // Fallback to JSON
-    try {
-      const orders = readJSON(ordersFile);
-      res.json(orders);
-    } catch (jsonError) {
-      console.error('JSON fallback failed, using memory:', jsonError);
-      // Final fallback: Memory storage
-      res.json(memoryOrders);
-    }
+    res.status(500).json({ error: error.message });
   }
 });
 
