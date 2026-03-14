@@ -23,6 +23,31 @@ let memoryOrders = [];
 let memoryMenu = [];
 let memoryCategories = [];
 
+// Vercel KV storage (persistent)
+let kvStore = null;
+
+// Initialize KV if available
+if (typeof process.env.KV_REST_API_URL !== 'undefined') {
+  kvStore = {
+    async get(key) {
+      const response = await fetch(`${process.env.KV_REST_API_URL}/${key}`, {
+        headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
+      });
+      return response.json();
+    },
+    async set(key, value) {
+      await fetch(`${process.env.KV_REST_API_URL}/${key}`, {
+        method: 'POST',
+        headers: { 
+          Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(value)
+      });
+    }
+  };
+}
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -170,27 +195,7 @@ app.post('/api/orders', async (req, res) => {
       );
       res.json({ success: true, orderId: result.rows[0].id, order: result.rows[0] });
     } else {
-      // JSON fallback
-      const orders = readJSON(ordersFile);
-      const order = {
-        id: Date.now(),
-        tableNumber,
-        items,
-        totalPrice,
-        status: 'pending',
-        notes: notes || '',
-        createdAt: new Date().toISOString()
-      };
-      orders.push(order);
-      writeJSON(ordersFile, orders);
-      res.json({ success: true, orderId: order.id, order });
-    }
-  } catch (error) {
-    console.error('Error creating order:', error);
-    console.log('Falling back to JSON storage...');
-    
-    // Fallback to JSON
-    try {
+      // JSON fallback - use public directory for Vercel persistence
       const orders = readJSON(ordersFile);
       const order = {
         id: Date.now(),
@@ -205,28 +210,27 @@ app.post('/api/orders', async (req, res) => {
       writeJSON(ordersFile, orders);
       console.log('Order saved to JSON:', order);
       res.json({ success: true, orderId: order.id, order });
-    } catch (fallbackError) {
-      console.error('JSON fallback also failed:', fallbackError);
-      console.log('Using memory storage as final fallback...');
-      
-      // Final fallback: Memory storage
-      try {
-        const order = {
-          id: Date.now(),
-          tableNumber,
-          items,
-          totalPrice,
-          status: 'pending',
-          notes: notes || '',
-          createdAt: new Date().toISOString()
-        };
-        memoryOrders.push(order);
-        console.log('Order saved to memory:', order);
-        res.json({ success: true, orderId: order.id, order });
-      } catch (memoryError) {
-        console.error('Memory storage failed:', memoryError);
-        res.status(500).json({ success: false, error: 'Failed to save order - all storage methods failed' });
-      }
+    }
+  } catch (error) {
+    console.error('Error creating order:', error);
+    
+    // Final fallback: Memory storage (for serverless)
+    try {
+      const order = {
+        id: Date.now(),
+        tableNumber,
+        items,
+        totalPrice,
+        status: 'pending',
+        notes: notes || '',
+        createdAt: new Date().toISOString()
+      };
+      memoryOrders.push(order);
+      console.log('Order saved to memory:', order);
+      res.json({ success: true, orderId: order.id, order });
+    } catch (memoryError) {
+      console.error('Memory storage failed:', memoryError);
+      res.status(500).json({ success: false, error: 'Failed to save order' });
     }
   }
 });
