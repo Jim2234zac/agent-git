@@ -1,0 +1,27 @@
+=== PostgreSQL Connection Info ===
+
+หลังติดตั้ง PostgreSQL แล้ว:
+
+Host: localhost
+Port: 5432
+Database Name: food_ordering_db
+Username: postgres
+Password: postgres123 (หรือ password ที่ตั้งตอนติดตั้ง)
+
+=== วิธีตั้งค่า ===
+
+1. เปิด pgAdmin จาก Start Menu
+2. เชื่อมต่อด้วยข้อมูลข้างบน
+3. สร้าง database ชื่อ "food_ordering_db"
+4. เพิ่มข้อมูลใน .env file:
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=food_ordering_db
+DB_USER=postgres
+DB_PASSWORD=postgres123
+
+=== ทดสอบ Connection ===
+
+รัน: npm start
+ดูว่าขึ้น "✓ Connected to PostgreSQL database" หรือไม่
