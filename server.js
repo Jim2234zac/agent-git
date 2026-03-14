@@ -18,6 +18,11 @@ const menuFile = path.join(__dirname, 'data', 'menu.json');
 const ordersFile = path.join(__dirname, 'data', 'orders.json');
 const categoriesFile = path.join(__dirname, 'data', 'categories.json');
 
+// In-memory storage for Vercel deployment
+let memoryOrders = [];
+let memoryMenu = [];
+let memoryCategories = [];
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -107,8 +112,14 @@ app.get('/api/menu', async (req, res) => {
   } catch (error) {
     console.error('Error fetching menu:', error);
     // Fallback to JSON if database fails
-    const menu = readJSON(menuFile);
-    res.json(menu);
+    try {
+      const menu = readJSON(menuFile);
+      res.json(menu);
+    } catch (jsonError) {
+      console.error('JSON fallback failed, using memory:', jsonError);
+      // Final fallback: Memory storage
+      res.json(memoryMenu);
+    }
   }
 });
 
@@ -196,7 +207,26 @@ app.post('/api/orders', async (req, res) => {
       res.json({ success: true, orderId: order.id, order });
     } catch (fallbackError) {
       console.error('JSON fallback also failed:', fallbackError);
-      res.status(500).json({ success: false, error: 'Failed to save order' });
+      console.log('Using memory storage as final fallback...');
+      
+      // Final fallback: Memory storage
+      try {
+        const order = {
+          id: Date.now(),
+          tableNumber,
+          items,
+          totalPrice,
+          status: 'pending',
+          notes: notes || '',
+          createdAt: new Date().toISOString()
+        };
+        memoryOrders.push(order);
+        console.log('Order saved to memory:', order);
+        res.json({ success: true, orderId: order.id, order });
+      } catch (memoryError) {
+        console.error('Memory storage failed:', memoryError);
+        res.status(500).json({ success: false, error: 'Failed to save order - all storage methods failed' });
+      }
     }
   }
 });
@@ -215,8 +245,14 @@ app.get('/api/orders', async (req, res) => {
   } catch (error) {
     console.error('Error fetching orders:', error);
     // Fallback to JSON
-    const orders = readJSON(ordersFile);
-    res.json(orders);
+    try {
+      const orders = readJSON(ordersFile);
+      res.json(orders);
+    } catch (jsonError) {
+      console.error('JSON fallback failed, using memory:', jsonError);
+      // Final fallback: Memory storage
+      res.json(memoryOrders);
+    }
   }
 });
 
@@ -379,7 +415,8 @@ app.get('/api/categories', async (req, res) => {
     const categories = readJSON(categoriesFile);
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Error reading categories, using memory:', error);
+    res.json(memoryCategories);
   }
 });
 
@@ -491,6 +528,25 @@ async function startServer() {
       console.log('⚠️  Using JSON files (PostgreSQL connection failed)');
     }
     
+    // Load initial data into memory
+    try {
+      memoryMenu = readJSON(menuFile);
+      memoryCategories = readJSON(categoriesFile);
+      memoryOrders = readJSON(ordersFile);
+      console.log('✓ Loaded data into memory');
+    } catch (error) {
+      console.log('⚠️  Could not load initial data, using empty arrays');
+      // Set default categories if none exist
+      memoryCategories = [
+        { id: 'appetizer', name: '🥘 อาหารจานเล็ก', name_en: 'Appetizers' },
+        { id: 'noodles', name: '🍝 เส้นก๊วยเตี๋ยว', name_en: 'Noodles' },
+        { id: 'rice', name: '🍚 ข้าว', name_en: 'Rice' },
+        { id: 'curry', name: '🍛 แกง', name_en: 'Curry' },
+        { id: 'soup', name: '🍜 น้ำซุป', name_en: 'Soup' },
+        { id: 'beverage', name: '🥤 เครื่องดื่ม', name_en: 'Beverages' }
+      ];
+    }
+    
     // Start Express server
     app.listen(PORT, () => {
       console.log(`✓ Server is running on http://localhost:${PORT}`);
@@ -498,6 +554,7 @@ async function startServer() {
       console.log(`✓ Cart: http://localhost:${PORT}/cart`);
       console.log(`✓ Admin: http://localhost:${PORT}/admin`);
       console.log(`✓ QR Code: http://localhost:${PORT}/generate-qr/:tableNumber`);
+      console.log(`✓ Memory storage ready for Vercel deployment`);
     });
   } catch (error) {
     console.error('✗ Failed to start server:', error);
