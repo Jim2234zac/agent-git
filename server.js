@@ -172,14 +172,24 @@ app.get('/api/menu/category/:category', async (req, res) => {
   }
 });
 
-// API: Upload image
-app.post('/api/upload', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, error: 'No file uploaded' });
+// API: Upload image (using base64 for Vercel)
+app.post('/api/upload', async (req, res) => {
+  try {
+    const { image } = req.body;
+    
+    if (!image) {
+      return res.status(400).json({ success: false, error: 'No image provided' });
+    }
+    
+    // For Vercel deployment, we'll use base64 data URLs
+    // In production, you should use Cloudinary, AWS S3, or similar
+    const imageUrl = `data:image/jpeg;base64,${image}`;
+    
+    res.json({ success: true, imageUrl });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ success: false, error: 'Upload failed' });
   }
-  
-  const imageUrl = `/uploads/${req.file.filename}`;
-  res.json({ success: true, imageUrl });
 });
 
 // API: Add order

@@ -267,23 +267,8 @@ async function addMenuItem() {
 
   // If image file is selected, upload it first
   if (imageFile) {
-    const formData = new FormData();
-    formData.append('image', imageFile);
-
     try {
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      const uploadResult = await uploadResponse.json();
-
-      if (uploadResult.success) {
-        image = uploadResult.imageUrl;
-      } else {
-        alert('❌ ไม่สามารถอัปโหลดรูปภาพได้');
-        return;
-      }
+      image = await uploadImage(imageFile);
     } catch (error) {
       console.error('Error uploading image:', error);
       alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
@@ -376,6 +361,40 @@ async function deleteMenuItem(id) {
     console.error('Error:', error);
     alert('ไม่สามารถลบได้');
   }
+}
+
+// Upload image (convert to base64 for Vercel)
+async function uploadImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+      try {
+        const base64Data = e.target.result.split(',')[1]; // Remove data URL prefix
+        
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ image: base64Data })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          resolve(result.imageUrl);
+        } else {
+          throw new Error('Upload failed');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        reject(error);
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
 }
 
 // Notification system
