@@ -111,9 +111,17 @@ function displayMenu(menu) {
   }
 
   menuGrid.innerHTML = menu.map(item => {
-    const isImageUrl = item.image && (item.image.startsWith('/') || item.image.startsWith('http'));
-    const imageSrc = isImageUrl ? item.image : undefined;
-    const emoji = !isImageUrl ? item.image : '🍽️';
+    let imageSrc = undefined;
+    let emoji = item.image || '🍽️';
+    
+    // Check if image is a data URL (base64)
+    if (item.image && item.image.startsWith('data:')) {
+      imageSrc = item.image;
+      emoji = ''; // Don't show emoji if we have real image
+    } else if (item.image && (item.image.startsWith('/') || item.image.startsWith('http'))) {
+      imageSrc = item.image;
+      emoji = ''; // Don't show emoji if we have real image
+    }
     
     // Properly escape strings for HTML attributes
     const escapedName = (item.name || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');

@@ -202,18 +202,26 @@ function displayMenuItems(menu) {
   }
 
   container.innerHTML = menu.map(item => {
-    const isImageUrl = item.image && (item.image.startsWith('/') || item.image.startsWith('http'));
-    const imageSrc = isImageUrl ? item.image : undefined;
-    const emoji = !isImageUrl ? item.image : '🍽️';
+    let imageSrc = undefined;
+    let emoji = item.image || '🍽️';
+    
+    // Check if image is a data URL (base64)
+    if (item.image && item.image.startsWith('data:')) {
+      imageSrc = item.image;
+      emoji = ''; // Don't show emoji if we have real image
+    } else if (item.image && (item.image.startsWith('/') || item.image.startsWith('http'))) {
+      imageSrc = item.image;
+      emoji = ''; // Don't show emoji if we have real image
+    }
     
     // Properly escape for onclick handler
     const escapedName = (item.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    const escapedImage = (item.image || '🍽️').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const escapedImage = (item.image || '🍽️').substring(0, 50).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const escapedDesc = (item.description || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     
     let emojiStyle = '';
     if (imageSrc) {
-      emojiStyle = ` style="background-image: url('${imageSrc}'); background-size: cover; background-position: center; font-size: 0;"`;
+      emojiStyle = ` style="background-image: url('${imageSrc}'); background-size: cover; background-position: center; font-size: 0; width: 60px; height: 60px; border-radius: 8px;"`;
     }
 
     return `
