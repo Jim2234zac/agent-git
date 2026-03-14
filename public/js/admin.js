@@ -563,7 +563,7 @@ function displayOrders(orders) {
               ${order.status === 'pending' ? '👨‍🍳' : '✓'}
             </button>
           ` : ''}
-          <button class="action-btn delete" onclick="deleteOrder(${order.id})">🗑️</button>
+          <button class="action-btn delete delete-btn" onclick="deleteOrder(${order.id})">🗑️</button>
         </td>
       </tr>
     `;
@@ -603,19 +603,97 @@ async function updateOrderStatus(orderId, newStatus) {
 }
 
 async function deleteOrder(orderId) {
-  if (confirm('ยืนยันการลบคำสั่งนี้?')) {
+  if (confirm('❌ ยืนยันการลบคำสั่งนี้?\n\nคำสั่งซื้อจะถูกลบทันทีและไม่สามารถกู้คืนได้!')) {
     try {
+      // Show loading state
+      const deleteBtn = event.target;
+      const originalText = deleteBtn.innerHTML;
+      deleteBtn.innerHTML = '⏳ กำลังลบ...';
+      deleteBtn.disabled = true;
+
       const response = await fetch(`/api/orders/${orderId}`, {
         method: 'DELETE'
       });
 
       if (response.ok) {
-        loadOrders();
+        // Remove row immediately with animation
+        const row = deleteBtn.closest('tr');
+        row.style.transition = 'all 0.3s ease';
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-100%)';
+        
+        // Remove from DOM after animation
+        setTimeout(() => {
+          row.remove();
+          // Update statistics
+          updateStatisticsAfterDelete();
+        }, 300);
+        
+        // Show success notification
+        showDeleteSuccessNotification();
+      } else {
+        throw new Error('Failed to delete order');
       }
     } catch (error) {
       console.error('Error deleting order:', error);
+      alert('❌ ไม่สามารถลบคำสั่งได้ กรุณาลองใหม่');
+      
+      // Reset button
+      const deleteBtn = event.target;
+      deleteBtn.innerHTML = '🗑️';
+      deleteBtn.disabled = false;
     }
   }
+}
+
+// Show delete success notification
+function showDeleteSuccessNotification() {
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    z-index: 1000;
+    animation: slideInRight 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  `;
+  notification.innerHTML = `
+    <span style="font-size: 20px;">✅</span>
+    <div>
+      <div style="font-weight: bold;">ลบคำสั่งซื้อสำเร็จ!</div>
+      <div style="font-size: 12px; opacity: 0.9;">รายการถูกลบจากระบบแล้ว</div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.3s ease-in';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// Update statistics after delete
+function updateStatisticsAfterDelete() {
+  const rows = document.querySelectorAll('#ordersBody tr');
+  const orders = Array.from(rows).map(row => {
+    const cells = row.cells;
+    return {
+      status: cells[3].textContent.includes('รอรับ') ? 'pending' : 
+             cells[3].textContent.includes('กำลังเตรียม') ? 'preparing' : 'completed',
+      total_price: parseFloat(cells[2].textContent.replace('฿', ''))
+    };
+  });
+  
+  updateStatistics(orders);
 }
 
 async function generateQRCode(tableNumber) {
